@@ -10,7 +10,7 @@ This is a Model Context Protocol (MCP) server that enables AI agents to query th
 
 ## Architecture Pattern
 
-This project follows the **example_mcp_server** pattern (Azure Updates MCP Server), which demonstrates the recommended architecture for MCP servers in this codebase:
+This project follows a standard MCP server architecture:
 
 ### Directory Structure
 ```
@@ -134,7 +134,7 @@ MCP_TRANSPORT=http MCP_HOST=0.0.0.0 MCP_PORT=8000 python -m <server_name>_mcp.se
 
 ## Implementation Notes
 
-1. **Follow the Example Pattern**: The example_mcp_server demonstrates the exact architecture to replicate for the M365 roadmap server
+1. **Follow the Established Architecture**: The directory structure and patterns in `src/m365_roadmap_mcp/` define the standard to follow
 2. **Async-First**: All tools and data fetching should be async
 3. **Filter Composition**: Support combining multiple filters (see search.py for pattern)
 4. **Error Handling**: Return error messages in `filters_applied` dict rather than raising exceptions
