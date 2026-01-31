@@ -1,6 +1,203 @@
-# M365-roadmap-mcp-server
+# M365 Roadmap MCP Server
 
-A Model Context Protocol (MCP) server that enables AI agents to query the Microsoft 365 Roadmap programmatically.
+mcp-name: io.github.jonnybottles.m365-roadmap
+
+A Python-based MCP (Model Context Protocol) server that enables AI agents to query the Microsoft 365 Roadmap programmatically.
+
+## Requirements
+
+### General
+
+- **Python 3.11+**
+- An MCP-compatible client (Claude Desktop, Cursor, Claude Code, GitHub Copilot CLI, etc.)
+
+### Using `uvx` (Recommended)
+
+If you are installing or running the server via **`uvx`**, you must have **uv** installed first.
+
+- **uv** (includes `uvx`): https://github.com/astral-sh/uv
+
+Install uv:
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+irm https://astral.sh/uv/install.ps1 | iex
+```
+
+Verify installation:
+
+```bash
+uv --version
+uvx --version
+```
+
+> `uvx` allows you to run the MCP server without installing the package globally.
+
+### Using pip (Alternative)
+
+If you prefer not to use `uvx`, you can install the package directly with pip.
+
+```bash
+pip install m365-roadmap-mcp
+```
+
+In this case, `uv` / `uvx` is **not required**.
+
+### Optional (for development)
+
+- `git`
+- `pytest`
+- `ruff`
+
+---
+
+## Quick Install
+
+[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0078d4?style=flat-square&logo=visualstudiocode)](https://vscode.dev/redirect/mcp/install?name=m365-roadmap-mcp&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22uvx%22%2C%20%22args%22%3A%20%5B%22m365-roadmap-mcp%22%5D%7D)
+[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000000?style=flat-square&logo=cursor)](https://cursor.com/docs/context/mcp)
+[![Install in Claude Code](https://img.shields.io/badge/Install_in-Claude_Code-9b6bff?style=flat-square&logo=anthropic)](https://code.claude.com/docs/en/mcp)
+[![Install in Copilot CLI](https://img.shields.io/badge/Install_in-Copilot_CLI-28a745?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+
+> **One-click install:** Click VS Code badge for automatic setup (requires `uv` installed)
+> **Manual install:** See instructions below for Cursor, Claude Code, Copilot CLI, or Claude Desktop
+
+## Features
+
+- **search_roadmap** – Search and filter M365 roadmap features by keywords, product, status, cloud instance, and date range
+- **get_feature_details** – Retrieve full metadata for a specific roadmap ID
+- **check_cloud_availability** – Verify if a feature is scheduled for specific cloud instances (GCC, GCC High, DoD)
+- **list_recent_additions** – List features added to the roadmap in the last X days
+
+## Prompt Examples
+
+Once connected to an MCP client, you can ask questions like:
+
+1. **Search by product and status**: "What Microsoft Teams features are currently rolling out?"
+2. **Check government cloud availability**: "Is Copilot available for GCC High yet?"
+3. **Find recent additions**: "Show me everything added to the M365 roadmap in the last 30 days"
+4. **Get feature details**: "Tell me more about roadmap feature 534606"
+5. **Filter by cloud instance**: "Which SharePoint features are in development and available for DoD?"
+6. **Compare cloud availability**: "Compare GCC and GCC High availability for feature 412718"
+7. **Weekly updates**: "What new features were added to the roadmap this week?"
+8. **Keyword search**: "Find all roadmap features related to data loss prevention"
+9. **Government cloud planning**: "My agency is on GCC High. Which OneDrive features can we expect?"
+10. **Product-specific queries**: "List all launched Viva features and check which ones support GCC"
+
+## Installation
+
+### Install from PyPI
+
+```bash
+uvx m365-roadmap-mcp
+```
+
+Or install with pip:
+
+```bash
+pip install m365-roadmap-mcp
+```
+
+### Install from source (for development)
+
+```bash
+git clone https://github.com/jonnybottles/M365-roadmap-mcp-server.git
+cd M365-roadmap-mcp-server
+pip install -e ".[dev]"
+```
+
+## Usage
+
+### Run the MCP Server
+
+```bash
+uvx m365-roadmap-mcp
+```
+
+Or if installed with pip:
+
+```bash
+m365-roadmap-mcp
+```
+
+### Connect from Claude Desktop
+
+Add to your Claude Desktop MCP config:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Using uvx (recommended)**
+
+```json
+{
+  "mcpServers": {
+    "m365-roadmap": {
+      "command": "uvx",
+      "args": ["m365-roadmap-mcp"]
+    }
+  }
+}
+```
+
+**Using installed package**
+
+```json
+{
+  "mcpServers": {
+    "m365-roadmap": {
+      "command": "m365-roadmap-mcp"
+    }
+  }
+}
+```
+
+### Connect from Cursor
+
+**Option 1: One-Click Install (Recommended)**
+
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=m365-roadmap-mcp&config=eyJjb21tYW5kIjogInV2eCIsICJhcmdzIjogWyJtMzY1LXJvYWRtYXAtbWNwIl19
+```
+
+**Option 2: Manual Configuration**
+
+Add to your Cursor MCP config:
+
+- macOS: `~/Library/Application Support/Cursor/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`
+- Windows: `%APPDATA%\Cursor\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json`
+
+### Connect from Claude Code
+
+```bash
+claude mcp add --transport stdio m365-roadmap -- uvx m365-roadmap-mcp
+```
+
+### Connect from GitHub Copilot CLI
+
+Add to `~/.copilot/mcp-config.json`:
+
+```json
+{
+  "mcpServers": {
+    "m365-roadmap": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["m365-roadmap-mcp"]
+    }
+  }
+}
+```
+
+## Development
+
+```bash
+pytest
+```
+
+---
 
 ## Strategic Rationale
 
@@ -47,40 +244,6 @@ The API returns a JSON array where each item represents a feature:
 | `check_cloud_availability` | Verifies if a feature is scheduled for a specific cloud instance | `{ "feature_id": "string", "instance": "string (e.g., GCC)" }` | Boolean availability and specific release date for that instance |
 | `list_recent_additions` | Lists features added to the roadmap in the last X days | `{ "days": "integer" }` | List of new features to monitor |
 
-## Example Prompts
-
-Here are 10 prompts you can use with an AI agent connected to this MCP server:
-
-1. **"What Microsoft Teams features are currently rolling out?"**
-   Uses `search_roadmap` with product and status filters to find Teams features in active rollout.
-
-2. **"Is Copilot available for GCC High yet?"**
-   Uses `search_roadmap` to find Copilot features, then `check_cloud_availability` to verify GCC High support for each result.
-
-3. **"Show me everything added to the M365 roadmap in the last 30 days."**
-   Uses `list_recent_additions(days=30)` to surface newly announced features.
-
-4. **"Tell me more about that Microsoft Lists agent feature you just found."**
-   After a prior search, the agent uses `get_feature_details` with the ID from the earlier result to retrieve the full description, cloud instances, and release date.
-
-5. **"Which SharePoint features are in development and available for DoD?"**
-   Uses `search_roadmap` with `product="SharePoint"`, `status="In development"`, and `cloud_instance="DoD"` to combine all three filters.
-
-6. **"Compare GCC and GCC High availability for feature 412718."**
-   Uses `check_cloud_availability` twice -- once with `instance="GCC"` and once with `instance="GCC High"` -- to compare cloud parity for a single feature.
-
-7. **"What new features were added to the roadmap this week?"**
-   Uses `list_recent_additions(days=7)` to get a concise list of the latest additions for a weekly briefing.
-
-8. **"Find all roadmap features related to data loss prevention."**
-   Uses `search_roadmap(query="data loss prevention")` to keyword-search across titles and descriptions.
-
-9. **"My agency is on GCC High. Which OneDrive features can we expect?"**
-   Uses `search_roadmap` with `product="OneDrive"` and `cloud_instance="GCC High"` to find features available for that government cloud.
-
-10. **"List all launched Viva features and check which ones support GCC."**
-    Uses `search_roadmap(product="Viva", status="Launched")` to get candidates, then `check_cloud_availability` on each to filter for GCC support.
-
 ## Usage Narrative: Government Compliance Checking
 
 ### Scenario
@@ -108,3 +271,7 @@ An IT Director for a federal agency (using the GCC High cloud) asks about the av
 ### Response
 
 > "Currently, Roadmap ID 534606 is listed for 'Worldwide (Standard Multi-Tenant)' with a status of 'Rolling Out'. It has not yet been scheduled for the GCC High environment. Based on typical parity delays, this feature is likely 6-12 months away for your tenant."
+
+## License
+
+MIT
