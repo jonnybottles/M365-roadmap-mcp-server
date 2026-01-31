@@ -12,16 +12,25 @@ Existing research indicates that while RSS feeds exist, there is no tool that al
 
 ** NOTE THE EXAMPLE MCP SERVER IS THE WAY WE SHOULD MODEL OUR MCP SERVER FOR THIS PROJECT 
 
-## Data Source Anatomy
+## Data Source
 
-The roadmap data is accessible via a public API endpoint, which has recently transitioned to a new URL structure, making legacy scrapers obsolete.
+This MCP server pulls data from Microsoft's public roadmap API:
 
-- **API Endpoint:** `https://www.microsoft.com/releasecommunications/api/v1/m365` (Superseding roadmap-api.azurewebsites.net)
-- **Authentication:** Public (No Token Required)
+- **API Endpoint:** `https://www.microsoft.com/releasecommunications/api/v1/m365`
+- **Authentication:** None required (public endpoint)
+- **RSS Mirror:** `https://www.microsoft.com/microsoft-365/RoadmapFeatureRSS` (same data, RSS format)
 
-### Schema Analysis
+This is the same data that powers the [Microsoft 365 Roadmap website](https://www.microsoft.com/en-us/microsoft-365/roadmap). The legacy endpoint (`roadmap-api.azurewebsites.net`) was retired in March 2025.
 
-The API returns a JSON array where each item represents a feature. The schema includes rich metadata:
+### Coverage and Limitations
+
+The API returns approximately **1,900 active features** -- those currently In Development, Rolling Out, or recently Launched. This is a hard cap; older or retired features age out of the API and are no longer returned. The roadmap website may display historical features that are no longer present in the API.
+
+There is no official Microsoft documentation for this API. It is a public, unauthenticated endpoint that the community has reverse-engineered. Microsoft Graph does not expose the public M365 roadmap (Graph's Service Communications API covers tenant-specific Message Center posts and Service Health, which is different data).
+
+### Schema
+
+The API returns a JSON array where each item represents a feature:
 
 | Field | Description |
 |-------|-------------|
@@ -41,6 +50,40 @@ The API returns a JSON array where each item represents a feature. The schema in
 | `get_feature_details` | Retrieves the full metadata for a specific roadmap ID | `{ "feature_id": "string" }` | Detailed JSON object including description and instance tags |
 | `check_cloud_availability` | Verifies if a feature is scheduled for a specific cloud instance | `{ "feature_id": "string", "instance": "string (e.g., GCC)" }` | Boolean availability and specific release date for that instance |
 | `list_recent_additions` | Lists features added to the roadmap in the last X days | `{ "days": "integer" }` | List of new features to monitor |
+
+## Example Prompts
+
+Here are 10 prompts you can use with an AI agent connected to this MCP server:
+
+1. **"What Microsoft Teams features are currently rolling out?"**
+   Uses `search_roadmap` with product and status filters to find Teams features in active rollout.
+
+2. **"Is Copilot available for GCC High yet?"**
+   Uses `search_roadmap` to find Copilot features, then `check_cloud_availability` to verify GCC High support for each result.
+
+3. **"Show me everything added to the M365 roadmap in the last 30 days."**
+   Uses `list_recent_additions(days=30)` to surface newly announced features.
+
+4. **"Tell me more about that Microsoft Lists agent feature you just found."**
+   After a prior search, the agent uses `get_feature_details` with the ID from the earlier result to retrieve the full description, cloud instances, and release date.
+
+5. **"Which SharePoint features are in development and available for DoD?"**
+   Uses `search_roadmap` with `product="SharePoint"`, `status="In development"`, and `cloud_instance="DoD"` to combine all three filters.
+
+6. **"Compare GCC and GCC High availability for feature 412718."**
+   Uses `check_cloud_availability` twice -- once with `instance="GCC"` and once with `instance="GCC High"` -- to compare cloud parity for a single feature.
+
+7. **"What new features were added to the roadmap this week?"**
+   Uses `list_recent_additions(days=7)` to get a concise list of the latest additions for a weekly briefing.
+
+8. **"Find all roadmap features related to data loss prevention."**
+   Uses `search_roadmap(query="data loss prevention")` to keyword-search across titles and descriptions.
+
+9. **"My agency is on GCC High. Which OneDrive features can we expect?"**
+   Uses `search_roadmap` with `product="OneDrive"` and `cloud_instance="GCC High"` to find features available for that government cloud.
+
+10. **"List all launched Viva features and check which ones support GCC."**
+    Uses `search_roadmap(product="Viva", status="Launched")` to get candidates, then `check_cloud_availability` on each to filter for GCC support.
 
 ## Usage Narrative: Government Compliance Checking
 
