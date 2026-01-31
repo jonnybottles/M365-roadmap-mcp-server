@@ -1,6 +1,6 @@
 # M365 Roadmap MCP Server
 
-mcp-name: io.github.jonnybottles.m365-roadmap
+<!-- mcp-name: io.github.jonnybottles/m365-roadmap -->
 
 A Python-based MCP (Model Context Protocol) server that enables AI agents to query the Microsoft 365 Roadmap programmatically.
 
