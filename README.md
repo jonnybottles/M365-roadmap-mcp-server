@@ -50,6 +50,12 @@ Using `uvx` (requires [uv](https://github.com/astral-sh/uv)):
 uvx m365-roadmap-mcp
 ```
 
+To update to the latest version:
+
+```bash
+uvx m365-roadmap-mcp@latest
+```
+
 Install uv if you don't have it:
 
 ```bash
@@ -64,6 +70,9 @@ Or install with pip (no uv required):
 
 ```bash
 pip install m365-roadmap-mcp
+
+# Update to latest
+pip install --upgrade m365-roadmap-mcp
 ```
 
 ### From source (for development)
