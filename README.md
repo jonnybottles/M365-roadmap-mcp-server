@@ -59,6 +59,15 @@ pip install m365-roadmap-mcp
 # Update to latest
 pip install --upgrade m365-roadmap-mcp
 ```
+## Quick Setup
+
+[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0078d4?style=flat-square&logo=visualstudiocode)](https://vscode.dev/redirect/mcp/install?name=m365-roadmap-mcp&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22uvx%22%2C%20%22args%22%3A%20%5B%22m365-roadmap-mcp%22%5D%7D)
+[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000000?style=flat-square&logo=cursor)](https://cursor.com/docs/context/mcp)
+[![Install in Claude Code](https://img.shields.io/badge/Install_in-Claude_Code-9b6bff?style=flat-square&logo=anthropic)](https://code.claude.com/docs/en/mcp)
+[![Install in Copilot CLI](https://img.shields.io/badge/Install_in-Copilot_CLI-28a745?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+
+> **One-click install:** Click VS Code badge for automatic setup (requires `uv` installed)
+> **Manual install:** See instructions below for Cursor, Claude Code, Copilot CLI, or Claude Desktop
 
 ## Client Configuration
 
@@ -142,18 +151,6 @@ Add to `~/.copilot/mcp-config.json`:
   }
 }
 ```
-
-
-## Quick Setup
-
-[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0078d4?style=flat-square&logo=visualstudiocode)](https://vscode.dev/redirect/mcp/install?name=m365-roadmap-mcp&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22uvx%22%2C%20%22args%22%3A%20%5B%22m365-roadmap-mcp%22%5D%7D)
-[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000000?style=flat-square&logo=cursor)](https://cursor.com/docs/context/mcp)
-[![Install in Claude Code](https://img.shields.io/badge/Install_in-Claude_Code-9b6bff?style=flat-square&logo=anthropic)](https://code.claude.com/docs/en/mcp)
-[![Install in Copilot CLI](https://img.shields.io/badge/Install_in-Copilot_CLI-28a745?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
-
-> **One-click install:** Click VS Code badge for automatic setup (requires `uv` installed)
-> **Manual install:** See instructions below for Cursor, Claude Code, Copilot CLI, or Claude Desktop
-
 ## Features
 
 Provides a single **`search_roadmap`** tool that handles all M365 roadmap queries. Combine any filters:
