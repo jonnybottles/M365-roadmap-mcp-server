@@ -1,5 +1,7 @@
 """Search tool for querying and filtering M365 Roadmap features."""
 
+from datetime import datetime, timedelta, timezone
+
 from ..feeds.m365_api import fetch_features
 
 
@@ -9,13 +11,15 @@ async def search_roadmap(
     status: str | None = None,
     cloud_instance: str | None = None,
     feature_id: str | None = None,
+    added_within_days: int | None = None,
     limit: int = 10,
 ) -> dict:
     """Search the Microsoft 365 Roadmap for features matching keywords and filters.
 
-    Combines keyword search, product filtering, status filtering, and cloud instance
-    filtering into a single flexible tool. All filter parameters are optional and
-    can be combined. When no filters are provided, returns the most recent features.
+    Combines keyword search, product filtering, status filtering, cloud instance
+    filtering, and recency filtering into a single flexible tool. All filter
+    parameters are optional and can be combined. When no filters are provided,
+    returns the most recent features.
 
     Use this tool to:
     - Browse recent roadmap features (no filters)
@@ -24,6 +28,7 @@ async def search_roadmap(
     - Find features by status (status="In development", "Rolling out", "Launched")
     - Filter by cloud instance (cloud_instance="GCC High", "DoD", "GCC")
     - Retrieve a specific feature by ID (feature_id="534606")
+    - List recently added features (added_within_days=30)
     - Combine any of the above (query="Copilot" + product="Teams" + cloud_instance="GCC")
 
     Args:
@@ -35,6 +40,9 @@ async def search_roadmap(
             e.g. "GCC" matches "GCC", "GCC High" matches "GCC High").
         feature_id: Optional roadmap ID to retrieve a single specific feature.
             When provided, all other filters are ignored.
+        added_within_days: Optional number of days to look back for recently added
+            features (clamped to 1–365). Only features with a created date within
+            this window are returned.
         limit: Maximum number of results to return (default: 10, max: 100).
             Ignored when feature_id is provided.
 
@@ -63,6 +71,12 @@ async def search_roadmap(
 
     # Clamp limit to reasonable bounds
     limit = max(1, min(limit, 100))
+
+    # Compute recency cutoff if requested
+    cutoff = None
+    if added_within_days is not None:
+        added_within_days = max(1, min(added_within_days, 365))
+        cutoff = datetime.now(timezone.utc) - timedelta(days=added_within_days)
 
     # Prepare lowercase values for case-insensitive matching
     query_lower = query.lower() if query else None
@@ -96,6 +110,19 @@ async def search_roadmap(
             ):
                 continue
 
+        # Recency filter (added_within_days)
+        if cutoff is not None:
+            if not feature.created:
+                continue
+            try:
+                created_dt = datetime.fromisoformat(feature.created)
+                if created_dt.tzinfo is None:
+                    created_dt = created_dt.replace(tzinfo=timezone.utc)
+                if created_dt < cutoff:
+                    continue
+            except (ValueError, TypeError):
+                continue
+
         matched.append(feature)
 
     # Build filters summary
@@ -108,6 +135,9 @@ async def search_roadmap(
         filters_applied["status"] = status
     if cloud_instance:
         filters_applied["cloud_instance"] = cloud_instance
+    if added_within_days is not None:
+        filters_applied["added_within_days"] = added_within_days
+        filters_applied["cutoff_date"] = cutoff.isoformat()
     if not filters_applied:
         filters_applied["note"] = "No filters applied, returning most recent features"
 

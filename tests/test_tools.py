@@ -159,223 +159,60 @@ async def test_search_output_structure():
 
 
 # ---------------------------------------------------------------------------
-# get_feature_details
+# added_within_days
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_get_feature_details_found():
-    """Returns full details for a valid feature ID."""
-    from m365_roadmap_mcp.tools.details import get_feature_details
+async def test_added_within_days_basic():
+    """added_within_days returns features and reports the filter."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    # Get a valid ID from search
-    recent = await search_roadmap(limit=1)
-    assert recent["features"], "Need at least one feature to test"
-    fid = recent["features"][0]["id"]
+    result = await search_roadmap(added_within_days=30)
 
-    result = await get_feature_details(fid)
-
-    assert result["found"] is True
-    assert result["feature"] is not None
-    assert result["feature"]["id"] == fid
-    assert "error" not in result
-
-
-@pytest.mark.asyncio
-async def test_get_feature_details_not_found():
-    """Returns found=False for a nonexistent feature ID."""
-    from m365_roadmap_mcp.tools.details import get_feature_details
-
-    result = await get_feature_details("nonexistent-id-99999")
-
-    assert result["found"] is False
-    assert result["feature"] is None
-    assert "error" in result
-
-
-@pytest.mark.asyncio
-async def test_get_feature_details_output_structure():
-    """Output contains expected keys and types."""
-    from m365_roadmap_mcp.tools.details import get_feature_details
-    from m365_roadmap_mcp.tools.search import search_roadmap
-
-    recent = await search_roadmap(limit=1)
-    assert recent["features"], "Need at least one feature to test"
-    fid = recent["features"][0]["id"]
-
-    result = await get_feature_details(fid)
-
-    assert isinstance(result["found"], bool)
-    assert isinstance(result["feature"], dict)
-    feature = result["feature"]
-    for key in ("id", "title", "description", "status", "tags",
-                "cloud_instances", "public_disclosure_date", "created", "modified"):
-        assert key in feature
-
-
-# ---------------------------------------------------------------------------
-# check_cloud_availability
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_check_cloud_worldwide_available():
-    """A feature with Worldwide instance should report available for 'Worldwide'."""
-    from m365_roadmap_mcp.tools.search import search_roadmap
-    from m365_roadmap_mcp.tools.cloud import check_cloud_availability
-
-    # Find a feature that has Worldwide cloud instance
-    result = await search_roadmap(cloud_instance="Worldwide", limit=1)
-    assert result["features"], "Need a Worldwide feature to test"
-    fid = result["features"][0]["id"]
-
-    cloud = await check_cloud_availability(fid, "Worldwide")
-
-    assert cloud["found"] is True
-    assert cloud["available"] is True
-    assert len(cloud["matched_instances"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_check_cloud_not_available():
-    """A feature without DoD should report not available for 'DoD'."""
-    from m365_roadmap_mcp.tools.search import search_roadmap
-    from m365_roadmap_mcp.tools.cloud import check_cloud_availability
-
-    # Find a feature with only Worldwide (no DoD)
-    result = await search_roadmap(cloud_instance="Worldwide", limit=20)
-    target_id = None
-    for feat in result["features"]:
-        if not any("dod" in ci.lower() for ci in feat["cloud_instances"]):
-            target_id = feat["id"]
-            break
-
-    if target_id is None:
-        pytest.skip("Could not find a feature without DoD availability")
-
-    cloud = await check_cloud_availability(target_id, "DoD")
-
-    assert cloud["found"] is True
-    assert cloud["available"] is False
-    assert cloud["matched_instances"] == []
-    assert len(cloud["all_instances"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_check_cloud_feature_not_found():
-    """Returns found=False for nonexistent feature ID."""
-    from m365_roadmap_mcp.tools.cloud import check_cloud_availability
-
-    result = await check_cloud_availability("nonexistent-id-99999", "GCC")
-
-    assert result["found"] is False
-    assert result["available"] is False
-    assert "error" in result
-
-
-@pytest.mark.asyncio
-async def test_check_cloud_case_insensitive():
-    """Cloud instance matching is case-insensitive."""
-    from m365_roadmap_mcp.tools.search import search_roadmap
-    from m365_roadmap_mcp.tools.cloud import check_cloud_availability
-
-    result = await search_roadmap(cloud_instance="Worldwide", limit=1)
-    assert result["features"], "Need a Worldwide feature to test"
-    fid = result["features"][0]["id"]
-
-    cloud = await check_cloud_availability(fid, "worldwide")
-
-    assert cloud["available"] is True
-    assert len(cloud["matched_instances"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_check_cloud_output_structure():
-    """Output contains all expected keys."""
-    from m365_roadmap_mcp.tools.search import search_roadmap
-    from m365_roadmap_mcp.tools.cloud import check_cloud_availability
-
-    recent = await search_roadmap(limit=1)
-    assert recent["features"], "Need at least one feature to test"
-    fid = recent["features"][0]["id"]
-
-    result = await check_cloud_availability(fid, "Worldwide")
-
-    for key in ("feature_id", "instance_queried", "found", "available",
-                "matched_instances", "all_instances", "status",
-                "public_disclosure_date", "title"):
-        assert key in result
-    assert isinstance(result["available"], bool)
-    assert isinstance(result["matched_instances"], list)
-    assert isinstance(result["all_instances"], list)
-
-
-# ---------------------------------------------------------------------------
-# list_recent_additions
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_recent_default_7_days():
-    """Default call uses 7-day window."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
-
-    result = await list_recent_additions()
-
-    assert result["days_queried"] == 7
-    assert isinstance(result["total_found"], int)
+    assert isinstance(result, dict)
     assert isinstance(result["features"], list)
-    assert "cutoff_date" in result
+    assert result["filters_applied"].get("added_within_days") == 30
+    assert "cutoff_date" in result["filters_applied"]
 
 
 @pytest.mark.asyncio
-async def test_recent_custom_days():
-    """Custom days parameter is respected."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
-
-    result = await list_recent_additions(days=30)
-
-    assert result["days_queried"] == 30
-
-
-@pytest.mark.asyncio
-async def test_recent_larger_window_gte_smaller():
+async def test_added_within_days_larger_window_gte_smaller():
     """A larger time window should return >= features than a smaller one."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
+    from m365_roadmap_mcp.tools.search import search_roadmap
 
-    small = await list_recent_additions(days=7)
-    large = await list_recent_additions(days=90)
+    small = await search_roadmap(added_within_days=7, limit=100)
+    large = await search_roadmap(added_within_days=90, limit=100)
 
     assert large["total_found"] >= small["total_found"]
 
 
 @pytest.mark.asyncio
-async def test_recent_days_clamping_low():
+async def test_added_within_days_clamping_low():
     """Days below 1 is clamped to 1."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
+    from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await list_recent_additions(days=0)
+    result = await search_roadmap(added_within_days=0)
 
-    assert result["days_queried"] == 1
+    assert result["filters_applied"]["added_within_days"] == 1
 
 
 @pytest.mark.asyncio
-async def test_recent_days_clamping_high():
+async def test_added_within_days_clamping_high():
     """Days above 365 is clamped to 365."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
+    from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await list_recent_additions(days=9999)
+    result = await search_roadmap(added_within_days=9999)
 
-    assert result["days_queried"] == 365
+    assert result["filters_applied"]["added_within_days"] == 365
 
 
 @pytest.mark.asyncio
-async def test_recent_features_have_created_date():
-    """All returned features should have a created date."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
+async def test_added_within_days_features_have_created_date():
+    """All returned features should have a created date when filtering by recency."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await list_recent_additions(days=365)
+    result = await search_roadmap(added_within_days=365, limit=100)
 
     for feature in result["features"]:
         assert feature["created"] is not None
@@ -383,17 +220,25 @@ async def test_recent_features_have_created_date():
 
 
 @pytest.mark.asyncio
-async def test_recent_output_structure():
-    """Output contains all expected keys and types."""
-    from m365_roadmap_mcp.tools.recent import list_recent_additions
+async def test_added_within_days_combined_with_product():
+    """added_within_days can be combined with other filters."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await list_recent_additions()
+    result = await search_roadmap(product="Teams", added_within_days=365, limit=5)
 
-    assert "total_found" in result
-    assert "features" in result
-    assert "days_queried" in result
-    assert "cutoff_date" in result
-    assert isinstance(result["total_found"], int)
-    assert isinstance(result["features"], list)
-    assert isinstance(result["days_queried"], int)
-    assert isinstance(result["cutoff_date"], str)
+    assert result["filters_applied"].get("product") == "Teams"
+    assert result["filters_applied"].get("added_within_days") == 365
+    for feature in result["features"]:
+        assert any("teams" in tag.lower() for tag in feature["tags"])
+        assert feature["created"] is not None
+
+
+@pytest.mark.asyncio
+async def test_added_within_days_none_means_no_filter():
+    """When added_within_days is None, no recency filter is applied."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
+
+    result = await search_roadmap(limit=5)
+
+    assert "added_within_days" not in result["filters_applied"]
+    assert "cutoff_date" not in result["filters_applied"]

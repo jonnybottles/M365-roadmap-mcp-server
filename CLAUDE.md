@@ -68,25 +68,21 @@ tests/
 - RSS/API parsing logic separated from tool logic
 - Returns strongly-typed model objects
 
-## Proposed Tool Definitions for M365 Roadmap
+## Tool Definitions
 
-The README specifies these tools to implement:
-
-1. **`search_roadmap`** - Search features by keywords and filters
-   - Args: query, product, status
-   - Returns: List of feature summaries with IDs and dates
-
-2. **`get_feature_details`** - Retrieve full metadata for a roadmap ID
-   - Args: feature_id
-   - Returns: Detailed JSON with description and cloud instance tags
-
-3. **`check_cloud_availability`** - Verify feature availability for specific cloud instances
-   - Args: feature_id, instance (e.g., "GCC", "GCC High", "DoD")
-   - Returns: Boolean availability and release date for that instance
-
-4. **`list_recent_additions`** - List recently added features
-   - Args: days (integer)
-   - Returns: List of new features to monitor
+**`search_roadmap`** - Single tool for all M365 roadmap queries. All parameters are optional and can be combined.
+- Args:
+  - query (str) - keyword search across title and description
+  - product (str) - filter by product tag (e.g. "Teams", "SharePoint")
+  - status (str) - filter by status ("In development", "Rolling out", "Launched")
+  - cloud_instance (str) - filter by cloud instance ("GCC", "GCC High", "DoD")
+  - feature_id (str) - retrieve a single feature by its roadmap ID (ignores other filters)
+  - added_within_days (int) - only return features added within N days (clamped 1-365)
+  - limit (int, default=10, max=100) - max results returned
+- Returns: dict with total_found, features list, filters_applied
+- Feature details: use `feature_id` to look up a specific feature
+- Cloud availability: each feature includes `cloud_instances` list; combine with `cloud_instance` filter
+- Recent additions: use `added_within_days` (e.g. 30 for last month)
 
 ## Key Schema Fields from M365 API
 

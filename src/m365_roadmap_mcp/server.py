@@ -8,9 +8,6 @@ from fastmcp import FastMCP
 # Suppress FastMCP's INFO logs to reduce console noise
 logging.getLogger("fastmcp").setLevel(logging.WARNING)
 
-from .tools.cloud import check_cloud_availability
-from .tools.details import get_feature_details
-from .tools.recent import list_recent_additions
 from .tools.search import search_roadmap
 
 # Create the MCP server
@@ -19,23 +16,24 @@ mcp = FastMCP(
     instructions=(
         "Query and search the Microsoft 365 Roadmap for upcoming features, "
         "release dates, and cloud instance availability.\n\n"
-        "Available tools:\n"
-        "- search_roadmap: Find and filter roadmap features by keyword, product, "
-        "status, cloud instance (GCC, GCC High, DoD), or feature ID.\n"
-        "- get_feature_details: Retrieve full metadata for a specific roadmap "
-        "feature by its ID.\n"
-        "- check_cloud_availability: Verify whether a feature is available for a "
-        "specific cloud instance (critical for government/defense clients).\n"
-        "- list_recent_additions: List features recently added to the roadmap "
-        "within a given number of days."
+        "Use the search_roadmap tool with any combination of filters:\n"
+        "- query: keyword search across title and description\n"
+        "- product: filter by product tag (e.g. 'Teams', 'SharePoint')\n"
+        "- status: filter by status ('In development', 'Rolling out', 'Launched')\n"
+        "- cloud_instance: filter by cloud instance ('GCC', 'GCC High', 'DoD')\n"
+        "- feature_id: retrieve a single feature by its roadmap ID\n"
+        "- added_within_days: show only features added within N days\n\n"
+        "Tips:\n"
+        "- To get feature details, use feature_id with the roadmap ID.\n"
+        "- To check cloud availability, use cloud_instance with a feature_id or "
+        "product filter. The cloud_instances field in each result shows all "
+        "supported instances.\n"
+        "- To list recent additions, use added_within_days (e.g. 30 for last month)."
     ),
 )
 
 # Register tools
 mcp.tool(search_roadmap)
-mcp.tool(get_feature_details)
-mcp.tool(check_cloud_availability)
-mcp.tool(list_recent_additions)
 
 
 def main():
