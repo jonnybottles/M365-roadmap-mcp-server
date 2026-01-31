@@ -34,9 +34,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jbuttler-microsoft/M365-roadmap-mcp-server"
-Repository = "https://github.com/jbuttler-microsoft/M365-roadmap-mcp-server"
-Issues = "https://github.com/jbuttler-microsoft/M365-roadmap-mcp-server/issues"
+Homepage = "https://github.com/jonnybottles/M365-roadmap-mcp-server"
+Repository = "https://github.com/jonnybottles/M365-roadmap-mcp-server"
+Issues = "https://github.com/jonnybottles/M365-roadmap-mcp-server/issues"
 
 [project.scripts]
 m365-roadmap-mcp = "m365_roadmap_mcp.server:main"
