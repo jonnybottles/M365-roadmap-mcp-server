@@ -1,6 +1,6 @@
 # M365 Roadmap MCP Server
 
-## Disclaimer: This is an independent, self-built project and is not an official Microsoft tool or service.
+### Disclaimer: This is an independent, self-built project and is not an official Microsoft tool or service.
 
 <!-- mcp-name: io.github.jonnybottles/m365-roadmap -->
 
