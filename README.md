@@ -180,13 +180,6 @@ There is no official Microsoft documentation for this API. It is a public, unaut
 
 ---
 
-
-## Development
-
-```bash
-pytest
-```
-
 ## License
 
 MIT
