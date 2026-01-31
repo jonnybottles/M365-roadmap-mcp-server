@@ -4,26 +4,11 @@ mcp-name: io.github.jonnybottles.m365-roadmap
 
 A Python-based MCP (Model Context Protocol) server that enables AI agents to query the Microsoft 365 Roadmap programmatically.
 
-## Quick Setup
+## Strategic Rationale
 
-[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0078d4?style=flat-square&logo=visualstudiocode)](https://vscode.dev/redirect/mcp/install?name=m365-roadmap-mcp&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22uvx%22%2C%20%22args%22%3A%20%5B%22m365-roadmap-mcp%22%5D%7D)
-[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000000?style=flat-square&logo=cursor)](https://cursor.com/docs/context/mcp)
-[![Install in Claude Code](https://img.shields.io/badge/Install_in-Claude_Code-9b6bff?style=flat-square&logo=anthropic)](https://code.claude.com/docs/en/mcp)
-[![Install in Copilot CLI](https://img.shields.io/badge/Install_in-Copilot_CLI-28a745?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+For organizations relying on Microsoft 365, Teams, or SharePoint, the "Roadmap" is the single source of truth for upcoming changes. However, navigating the roadmap website manually is cumbersome and disconnected from technical planning workflows. "When is Copilot coming to GCC High?" is a question that affects multi-million dollar contracts and deployment schedules.
 
-> **One-click install:** Click VS Code badge for automatic setup (requires `uv` installed)
-> **Manual install:** See instructions below for Cursor, Claude Code, Copilot CLI, or Claude Desktop
-
-## Features
-
-Provides a single **`search_roadmap`** tool that handles all M365 roadmap queries. Combine any filters:
-
-- **Keyword search** -- Find features by keyword in title/description
-- **Product filter** -- Filter by product tag (Teams, SharePoint, etc.)
-- **Status filter** -- Filter by status (In development, Rolling out, Launched)
-- **Cloud instance filter** -- Filter by cloud instance (GCC, GCC High, DoD)
-- **Feature lookup** -- Retrieve full metadata for a specific roadmap ID
-- **Recent additions** -- List features added within the last N days
+Existing research indicates that while RSS feeds exist, there is no tool that allows an AI agent to structurally query this data to answer complex filtering questions. A "Roadmap Scout" MCP server empowers the Agent to act as a release manager, proactively identifying features that enable new capabilities or threaten existing customizations.
 
 ## Prompt Examples
 
@@ -73,14 +58,6 @@ pip install m365-roadmap-mcp
 
 # Update to latest
 pip install --upgrade m365-roadmap-mcp
-```
-
-### From source (for development)
-
-```bash
-git clone https://github.com/jonnybottles/M365-roadmap-mcp-server.git
-cd M365-roadmap-mcp-server
-pip install -e ".[dev]"
 ```
 
 ## Client Configuration
@@ -166,6 +143,28 @@ Add to `~/.copilot/mcp-config.json`:
 }
 ```
 
+
+## Quick Setup
+
+[![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-0078d4?style=flat-square&logo=visualstudiocode)](https://vscode.dev/redirect/mcp/install?name=m365-roadmap-mcp&config=%7B%22type%22%3A%20%22stdio%22%2C%20%22command%22%3A%20%22uvx%22%2C%20%22args%22%3A%20%5B%22m365-roadmap-mcp%22%5D%7D)
+[![Install in Cursor](https://img.shields.io/badge/Install_in-Cursor-000000?style=flat-square&logo=cursor)](https://cursor.com/docs/context/mcp)
+[![Install in Claude Code](https://img.shields.io/badge/Install_in-Claude_Code-9b6bff?style=flat-square&logo=anthropic)](https://code.claude.com/docs/en/mcp)
+[![Install in Copilot CLI](https://img.shields.io/badge/Install_in-Copilot_CLI-28a745?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+
+> **One-click install:** Click VS Code badge for automatic setup (requires `uv` installed)
+> **Manual install:** See instructions below for Cursor, Claude Code, Copilot CLI, or Claude Desktop
+
+## Features
+
+Provides a single **`search_roadmap`** tool that handles all M365 roadmap queries. Combine any filters:
+
+- **Keyword search** -- Find features by keyword in title/description
+- **Product filter** -- Filter by product tag (Teams, SharePoint, etc.)
+- **Status filter** -- Filter by status (In development, Rolling out, Launched)
+- **Cloud instance filter** -- Filter by cloud instance (GCC, GCC High, DoD)
+- **Feature lookup** -- Retrieve full metadata for a specific roadmap ID
+- **Recent additions** -- List features added within the last N days
+
 ## Data Source
 
 This MCP server pulls data from Microsoft's public roadmap API:
@@ -184,11 +183,6 @@ There is no official Microsoft documentation for this API. It is a public, unaut
 
 ---
 
-## Strategic Rationale
-
-For organizations relying on Microsoft 365, Teams, or SharePoint, the "Roadmap" is the single source of truth for upcoming changes. However, navigating the roadmap website manually is cumbersome and disconnected from technical planning workflows. "When is Copilot coming to GCC High?" is a question that affects multi-million dollar contracts and deployment schedules.
-
-Existing research indicates that while RSS feeds exist, there is no tool that allows an AI agent to structurally query this data to answer complex filtering questions. A "Roadmap Scout" MCP server empowers the Agent to act as a release manager, proactively identifying features that enable new capabilities or threaten existing customizations.
 
 ## Development
 
