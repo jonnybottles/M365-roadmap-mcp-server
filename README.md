@@ -8,10 +8,6 @@ For organizations relying on Microsoft 365, Teams, or SharePoint, the "Roadmap" 
 
 Existing research indicates that while RSS feeds exist, there is no tool that allows an AI agent to structurally query this data to answer complex filtering questions. A "Roadmap Scout" MCP server empowers the Agent to act as a release manager, proactively identifying features that enable new capabilities or threaten existing customizations.
 
-## example MCP server
-
-** NOTE THE EXAMPLE MCP SERVER IS THE WAY WE SHOULD MODEL OUR MCP SERVER FOR THIS PROJECT 
-
 ## Data Source
 
 This MCP server pulls data from Microsoft's public roadmap API:
