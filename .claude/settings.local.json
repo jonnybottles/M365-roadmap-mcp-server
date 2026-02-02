@@ -61,7 +61,8 @@
       "Bash(./mcp-publisher.exe:*)",
       "WebFetch(domain:registry.modelcontextprotocol.io)",
       "Bash(python -m json.tool:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(tree:*)"
     ]
   }
 }
