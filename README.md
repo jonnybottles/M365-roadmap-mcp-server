@@ -163,6 +163,11 @@ Provides a single **`search_roadmap`** tool that handles all M365 roadmap querie
 - **Cloud instance filter** -- Filter by cloud instance (GCC, GCC High, DoD)
 - **Feature lookup** -- Retrieve full metadata for a specific roadmap ID
 - **Recent additions** -- List features added within the last N days
+- **Release phase filter** -- Filter by release phase (General Availability, Preview, Targeted Release)
+- **Platform filter** -- Filter by platform (Web, Desktop, iOS, Android, Mac)
+- **Rollout date filter** -- Filter by rollout start date (e.g., "December 2026", "2026")
+- **Preview date filter** -- Filter by preview availability date (e.g., "July 2026")
+- **Recently modified** -- List features modified within the last N days
 
 ## Data Source
 
