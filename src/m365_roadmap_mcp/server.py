@@ -22,13 +22,20 @@ mcp = FastMCP(
         "- status: filter by status ('In development', 'Rolling out', 'Launched')\n"
         "- cloud_instance: filter by cloud instance ('GCC', 'GCC High', 'DoD')\n"
         "- feature_id: retrieve a single feature by its roadmap ID\n"
-        "- added_within_days: show only features added within N days\n\n"
+        "- added_within_days: show only features added within N days\n"
+        "- release_phase: filter by release phase ('General Availability', 'Preview')\n"
+        "- platform: filter by platform ('Web', 'Desktop', 'iOS', 'Android', 'Mac')\n"
+        "- rollout_date: filter by rollout start date (e.g. 'December 2026')\n"
+        "- preview_date: filter by preview availability date (e.g. 'July 2026')\n"
+        "- modified_within_days: show only features modified within N days\n\n"
         "Tips:\n"
         "- To get feature details, use feature_id with the roadmap ID.\n"
         "- To check cloud availability, use cloud_instance with a feature_id or "
         "product filter. The cloud_instances field in each result shows all "
         "supported instances.\n"
-        "- To list recent additions, use added_within_days (e.g. 30 for last month)."
+        "- To list recent additions, use added_within_days (e.g. 30 for last month).\n"
+        "- To filter by release phase or platform, use release_phase or platform filters.\n"
+        "- To search by dates, use rollout_date or preview_date with partial date strings."
     ),
 )
 

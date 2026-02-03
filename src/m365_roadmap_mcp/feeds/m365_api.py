@@ -55,6 +55,20 @@ def _parse_item(item: dict) -> RoadmapFeature | None:
             if "tagName" in c
         ]
 
+        # Extract release phases from tagsContainer
+        release_phases = [
+            r["tagName"]
+            for r in tags_container.get("releasePhase", [])
+            if "tagName" in r
+        ]
+
+        # Extract platforms from tagsContainer
+        platforms = [
+            p["tagName"]
+            for p in tags_container.get("platforms", [])
+            if "tagName" in p
+        ]
+
         return RoadmapFeature(
             id=str(item.get("id", "")),
             title=item.get("title", ""),
@@ -62,7 +76,10 @@ def _parse_item(item: dict) -> RoadmapFeature | None:
             status=item.get("status"),
             tags=products,
             cloud_instances=cloud_instances,
+            release_phases=release_phases,
+            platforms=platforms,
             public_disclosure_date=item.get("publicDisclosureAvailabilityDate"),
+            public_preview_date=item.get("publicPreviewDate"),
             created=item.get("created"),
             modified=item.get("modified"),
         )

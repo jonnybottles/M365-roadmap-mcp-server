@@ -36,3 +36,29 @@ async def test_features_sorted_by_created_date():
             # Both should have created dates; newest first
             if features[i].created and features[i + 1].created:
                 assert features[i].created >= features[i + 1].created
+
+
+@pytest.mark.asyncio
+async def test_feature_has_new_fields():
+    """Test that features have the newly added fields."""
+    features = await fetch_features()
+
+    if features:
+        feature = features[0]
+        assert hasattr(feature, "release_phases")
+        assert hasattr(feature, "platforms")
+        assert hasattr(feature, "public_preview_date")
+        assert isinstance(feature.release_phases, list)
+        assert isinstance(feature.platforms, list)
+
+
+@pytest.mark.asyncio
+async def test_feature_with_populated_fields():
+    """Test that at least some features have populated release_phases and platforms."""
+    features = await fetch_features()
+
+    has_release_phase = any(len(f.release_phases) > 0 for f in features)
+    has_platform = any(len(f.platforms) > 0 for f in features)
+
+    assert has_release_phase, "No features have release_phases populated"
+    assert has_platform, "No features have platforms populated"

@@ -21,9 +21,21 @@ class RoadmapFeature(BaseModel):
         default_factory=list,
         description="Cloud availability (e.g., Worldwide, GCC, GCC High, DoD)",
     )
+    release_phases: list[str] = Field(
+        default_factory=list,
+        description="Release phases (e.g., General Availability, Preview, Targeted Release)",
+    )
+    platforms: list[str] = Field(
+        default_factory=list,
+        description="Target platforms (e.g., Web, Desktop, iOS, Android, Mac)",
+    )
     public_disclosure_date: str | None = Field(
         default=None,
-        description="Estimated release date (e.g., August CY2026)",
+        description="Estimated rollout start date (e.g., December CY2026)",
+    )
+    public_preview_date: str | None = Field(
+        default=None,
+        description="Estimated preview availability date (e.g., July 2026)",
     )
     created: str | None = Field(
         default=None,
@@ -43,7 +55,10 @@ class RoadmapFeature(BaseModel):
             "status": self.status,
             "tags": self.tags,
             "cloud_instances": self.cloud_instances,
+            "release_phases": self.release_phases,
+            "platforms": self.platforms,
             "public_disclosure_date": self.public_disclosure_date,
+            "public_preview_date": self.public_preview_date,
             "created": self.created,
             "modified": self.modified,
         }

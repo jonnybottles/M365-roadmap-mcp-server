@@ -12,6 +12,11 @@ async def search_roadmap(
     cloud_instance: str | None = None,
     feature_id: str | None = None,
     added_within_days: int | None = None,
+    release_phase: str | None = None,
+    platform: str | None = None,
+    rollout_date: str | None = None,
+    preview_date: str | None = None,
+    modified_within_days: int | None = None,
     limit: int = 10,
 ) -> dict:
     """Search the Microsoft 365 Roadmap for features matching keywords and filters.
@@ -29,6 +34,11 @@ async def search_roadmap(
     - Filter by cloud instance (cloud_instance="GCC High", "DoD", "GCC")
     - Retrieve a specific feature by ID (feature_id="534606")
     - List recently added features (added_within_days=30)
+    - Filter by release phase (release_phase="General Availability", "Preview")
+    - Filter by platform (platform="Web", "iOS", "Android")
+    - Filter by rollout date (rollout_date="December 2026")
+    - Filter by preview date (preview_date="July 2026")
+    - List recently modified features (modified_within_days=7)
     - Combine any of the above (query="Copilot" + product="Teams" + cloud_instance="GCC")
 
     Args:
@@ -43,6 +53,14 @@ async def search_roadmap(
         added_within_days: Optional number of days to look back for recently added
             features (clamped to 1–365). Only features with a created date within
             this window are returned.
+        release_phase: Optional release phase filter (case-insensitive partial match).
+        platform: Optional platform filter (case-insensitive partial match).
+        rollout_date: Optional rollout start date filter (partial string match against
+            publicDisclosureAvailabilityDate, e.g. "December 2026").
+        preview_date: Optional preview availability date filter (partial string match
+            against publicPreviewDate, e.g. "July 2026").
+        modified_within_days: Optional number of days to look back for recently modified
+            features (clamped to 1-365).
         limit: Maximum number of results to return (default: 10, max: 100).
             Ignored when feature_id is provided.
 
@@ -78,11 +96,21 @@ async def search_roadmap(
         added_within_days = max(1, min(added_within_days, 365))
         cutoff = datetime.now(timezone.utc) - timedelta(days=added_within_days)
 
+    # Compute modified cutoff if requested
+    modified_cutoff = None
+    if modified_within_days is not None:
+        modified_within_days = max(1, min(modified_within_days, 365))
+        modified_cutoff = datetime.now(timezone.utc) - timedelta(days=modified_within_days)
+
     # Prepare lowercase values for case-insensitive matching
     query_lower = query.lower() if query else None
     product_lower = product.lower() if product else None
     status_lower = status.lower() if status else None
     cloud_lower = cloud_instance.lower() if cloud_instance else None
+    release_phase_lower = release_phase.lower() if release_phase else None
+    platform_lower = platform.lower() if platform else None
+    rollout_date_lower = rollout_date.lower() if rollout_date else None
+    preview_date_lower = preview_date.lower() if preview_date else None
 
     # Apply all filters
     matched = []
@@ -100,6 +128,26 @@ async def search_roadmap(
         # Cloud instance filter (partial match)
         if cloud_lower:
             if not any(cloud_lower in ci.lower() for ci in feature.cloud_instances):
+                continue
+
+        # Release phase filter (partial match)
+        if release_phase_lower:
+            if not any(release_phase_lower in rp.lower() for rp in feature.release_phases):
+                continue
+
+        # Platform filter (partial match)
+        if platform_lower:
+            if not any(platform_lower in p.lower() for p in feature.platforms):
+                continue
+
+        # Rollout date filter (partial match against publicDisclosureAvailabilityDate)
+        if rollout_date_lower:
+            if not feature.public_disclosure_date or rollout_date_lower not in feature.public_disclosure_date.lower():
+                continue
+
+        # Preview date filter (partial match against publicPreviewDate)
+        if preview_date_lower:
+            if not feature.public_preview_date or preview_date_lower not in feature.public_preview_date.lower():
                 continue
 
         # Keyword search (title + description)
@@ -123,6 +171,19 @@ async def search_roadmap(
             except (ValueError, TypeError):
                 continue
 
+        # Recency filter (modified_within_days)
+        if modified_cutoff is not None:
+            if not feature.modified:
+                continue
+            try:
+                modified_dt = datetime.fromisoformat(feature.modified)
+                if modified_dt.tzinfo is None:
+                    modified_dt = modified_dt.replace(tzinfo=timezone.utc)
+                if modified_dt < modified_cutoff:
+                    continue
+            except (ValueError, TypeError):
+                continue
+
         matched.append(feature)
 
     # Build filters summary
@@ -138,6 +199,17 @@ async def search_roadmap(
     if added_within_days is not None:
         filters_applied["added_within_days"] = added_within_days
         filters_applied["cutoff_date"] = cutoff.isoformat()
+    if modified_within_days is not None:
+        filters_applied["modified_within_days"] = modified_within_days
+        filters_applied["modified_cutoff_date"] = modified_cutoff.isoformat()
+    if release_phase:
+        filters_applied["release_phase"] = release_phase
+    if platform:
+        filters_applied["platform"] = platform
+    if rollout_date:
+        filters_applied["rollout_date"] = rollout_date
+    if preview_date:
+        filters_applied["preview_date"] = preview_date
     if not filters_applied:
         filters_applied["note"] = "No filters applied, returning most recent features"
 
