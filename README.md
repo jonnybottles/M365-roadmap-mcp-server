@@ -183,7 +183,6 @@ This is the same data that powers the [Microsoft 365 Roadmap website](https://ww
 
 The API returns approximately **1,900 active features** -- those currently In Development, Rolling Out, or recently Launched. This is a hard cap; older or retired features age out of the API and are no longer returned. The roadmap website may display historical features that are no longer present in the API.
 
-There is no official Microsoft documentation for this API. It is a public, unauthenticated endpoint that the community has reverse-engineered. Microsoft Graph does not expose the public M365 roadmap (Graph's Service Communications API covers tenant-specific Message Center posts and Service Health, which is different data).
 ---
 
 ## License
