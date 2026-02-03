@@ -27,7 +27,8 @@ mcp = FastMCP(
         "- platform: filter by platform ('Web', 'Desktop', 'iOS', 'Android', 'Mac')\n"
         "- rollout_date: filter by rollout start date (e.g. 'December 2026')\n"
         "- preview_date: filter by preview availability date (e.g. 'July 2026')\n"
-        "- modified_within_days: show only features modified within N days\n\n"
+        "- modified_within_days: show only features modified within N days\n"
+        "- include_facets: include taxonomy facets with counts (default: False)\n\n"
         "Tips:\n"
         "- To get feature details, use feature_id with the roadmap ID.\n"
         "- To check cloud availability, use cloud_instance with a feature_id or "
@@ -35,7 +36,8 @@ mcp = FastMCP(
         "supported instances.\n"
         "- To list recent additions, use added_within_days (e.g. 30 for last month).\n"
         "- To filter by release phase or platform, use release_phase or platform filters.\n"
-        "- To search by dates, use rollout_date or preview_date with partial date strings."
+        "- To search by dates, use rollout_date or preview_date with partial date strings.\n"
+        "- To discover available filter values, use include_facets=True (optionally with limit=0)."
     ),
 )
 

@@ -587,3 +587,75 @@ async def test_december_2026_includes_universal_print():
     # This should be true if the original issue is fixed
     assert result["total_found"] > 0, "Should return features for December CY2026"
     assert has_universal_print, "Universal Print feature should be in December CY2026 results"
+
+
+@pytest.mark.asyncio
+async def test_include_facets_basic():
+    """include_facets=True returns facets with counts."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
+
+    result = await search_roadmap(include_facets=True, limit=10)
+
+    # Basic response structure
+    assert "total_found" in result
+    assert "features" in result
+    assert "filters_applied" in result
+    assert "facets" in result
+
+    # Verify facets structure
+    facets = result["facets"]
+    assert "products" in facets
+    assert "statuses" in facets
+    assert "release_phases" in facets
+    assert "platforms" in facets
+    assert "cloud_instances" in facets
+
+    # Each facet should be a list of dicts with name and count
+    for facet_category in facets.values():
+        assert isinstance(facet_category, list)
+        if len(facet_category) > 0:
+            assert "name" in facet_category[0]
+            assert "count" in facet_category[0]
+            assert isinstance(facet_category[0]["count"], int)
+
+
+@pytest.mark.asyncio
+async def test_include_facets_with_limit_zero():
+    """include_facets=True with limit=0 returns only facets, no features."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
+
+    result = await search_roadmap(include_facets=True, limit=0)
+
+    assert result["total_found"] > 0  # Should have matched features
+    assert len(result["features"]) == 0  # But no features returned
+    assert "facets" in result
+    assert len(result["facets"]["products"]) > 0  # Should have product facets
+
+
+@pytest.mark.asyncio
+async def test_include_facets_with_filter():
+    """Facets are computed from filtered results, not all features."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
+
+    # Get facets for Teams features only
+    result = await search_roadmap(product="Teams", include_facets=True, limit=10)
+
+    assert "facets" in result
+    # Verify facets reflect the filtered results
+    # The total counts in facets should be <= total_found
+    products = result["facets"]["products"]
+    total_product_mentions = sum(p["count"] for p in products)
+    # Each feature can have multiple product tags, so this is >= total_found
+    assert total_product_mentions >= result["total_found"]
+
+
+@pytest.mark.asyncio
+async def test_include_facets_false():
+    """include_facets=False (default) does not include facets."""
+    from m365_roadmap_mcp.tools.search import search_roadmap
+
+    result = await search_roadmap(include_facets=False, limit=10)
+
+    assert "total_found" in result
+    assert "features" in result
+    assert "facets" not in result

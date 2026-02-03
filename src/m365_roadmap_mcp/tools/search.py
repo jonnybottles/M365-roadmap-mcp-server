@@ -1,8 +1,55 @@
 """Search tool for querying and filtering M365 Roadmap features."""
 
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 from ..feeds.m365_api import fetch_features
+from ..models.feature import RoadmapFeature
+
+
+def compute_facets(features: list[RoadmapFeature]) -> dict:
+    """Compute facet counts from a list of features.
+
+    Args:
+        features: List of RoadmapFeature objects to analyze
+
+    Returns:
+        Dictionary with facet categories and counts
+    """
+    products = Counter()
+    statuses = Counter()
+    release_phases = Counter()
+    platforms = Counter()
+    cloud_instances = Counter()
+
+    for feature in features:
+        # Products (from tags)
+        for tag in feature.tags:
+            products[tag] += 1
+
+        # Status
+        if feature.status:
+            statuses[feature.status] += 1
+
+        # Release phases
+        for rp in feature.release_phases:
+            release_phases[rp] += 1
+
+        # Platforms
+        for p in feature.platforms:
+            platforms[p] += 1
+
+        # Cloud instances
+        for ci in feature.cloud_instances:
+            cloud_instances[ci] += 1
+
+    return {
+        "products": [{"name": k, "count": v} for k, v in products.most_common()],
+        "statuses": [{"name": k, "count": v} for k, v in statuses.most_common()],
+        "release_phases": [{"name": k, "count": v} for k, v in release_phases.most_common()],
+        "platforms": [{"name": k, "count": v} for k, v in platforms.most_common()],
+        "cloud_instances": [{"name": k, "count": v} for k, v in cloud_instances.most_common()],
+    }
 
 
 async def search_roadmap(
@@ -17,6 +64,7 @@ async def search_roadmap(
     rollout_date: str | None = None,
     preview_date: str | None = None,
     modified_within_days: int | None = None,
+    include_facets: bool = False,
     limit: int = 10,
 ) -> dict:
     """Search the Microsoft 365 Roadmap for features matching keywords and filters.
@@ -61,6 +109,10 @@ async def search_roadmap(
             against publicPreviewDate, e.g. "July 2026").
         modified_within_days: Optional number of days to look back for recently modified
             features (clamped to 1-365).
+        include_facets: When True, includes taxonomy facets (products, statuses,
+            release_phases, platforms, cloud_instances) with occurrence counts in
+            the response. Use with limit=0 to get only facets without features.
+            Facets are computed from matched results after filters are applied.
         limit: Maximum number of results to return (default: 10, max: 100).
             Ignored when feature_id is provided.
 
@@ -69,6 +121,7 @@ async def search_roadmap(
         - total_found: Number of features matching the filters (before applying limit)
         - features: List of matching feature objects (up to limit)
         - filters_applied: Summary of which filters were used
+        - facets: (Optional) Dictionary with facet categories and counts when include_facets=True
     """
     features = await fetch_features()
 
@@ -87,8 +140,9 @@ async def search_roadmap(
             "filters_applied": {"feature_id": feature_id},
         }
 
-    # Clamp limit to reasonable bounds
-    limit = max(1, min(limit, 100))
+    # Clamp limit to reasonable bounds (allow 0 when only requesting facets)
+    min_limit = 0 if include_facets else 1
+    limit = max(min_limit, min(limit, 100))
 
     # Compute recency cutoff if requested
     cutoff = None
@@ -141,13 +195,25 @@ async def search_roadmap(
                 continue
 
         # Rollout date filter (partial match against publicDisclosureAvailabilityDate)
+        # API uses "CY" prefix (e.g., "December CY2026") but users typically omit it
         if rollout_date_lower:
-            if not feature.public_disclosure_date or rollout_date_lower not in feature.public_disclosure_date.lower():
+            if not feature.public_disclosure_date:
+                continue
+            # Normalize by removing "cy" prefix for comparison
+            normalized_date = feature.public_disclosure_date.lower().replace(" cy", " ")
+            normalized_query = rollout_date_lower.replace(" cy", " ")
+            if normalized_query not in normalized_date:
                 continue
 
         # Preview date filter (partial match against publicPreviewDate)
+        # API uses "CY" prefix (e.g., "July CY2026") but users typically omit it
         if preview_date_lower:
-            if not feature.public_preview_date or preview_date_lower not in feature.public_preview_date.lower():
+            if not feature.public_preview_date:
+                continue
+            # Normalize by removing "cy" prefix for comparison
+            normalized_date = feature.public_preview_date.lower().replace(" cy", " ")
+            normalized_query = preview_date_lower.replace(" cy", " ")
+            if normalized_query not in normalized_date:
                 continue
 
         # Keyword search (title + description)
@@ -213,8 +279,15 @@ async def search_roadmap(
     if not filters_applied:
         filters_applied["note"] = "No filters applied, returning most recent features"
 
-    return {
+    # Build response
+    result = {
         "total_found": len(matched),
         "features": [f.to_dict() for f in matched[:limit]],
         "filters_applied": filters_applied,
     }
+
+    # Add facets if requested (computed from matched results)
+    if include_facets:
+        result["facets"] = compute_facets(matched)
+
+    return result
