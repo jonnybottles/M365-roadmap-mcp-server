@@ -4,7 +4,7 @@ import httpx
 
 from ..models.feature import RoadmapFeature
 
-M365_ROADMAP_API_URL = "https://www.microsoft.com/releasecommunications/api/v1/m365"
+M365_ROADMAP_API_URL = "https://www.microsoft.com/releasecommunications/api/v2/m365"
 
 
 async def fetch_features() -> list[RoadmapFeature]:
@@ -17,7 +17,8 @@ async def fetch_features() -> list[RoadmapFeature]:
         response = await client.get(M365_ROADMAP_API_URL, timeout=30.0)
         response.raise_for_status()
 
-    items = response.json()
+    data = response.json()
+    items = data.get("value", []) if isinstance(data, dict) else data
     features = []
 
     for item in items:
@@ -34,52 +35,33 @@ def _parse_item(item: dict) -> RoadmapFeature | None:
     """Parse a single API item into a RoadmapFeature.
 
     Args:
-        item: A dictionary from the API JSON array.
+        item: A dictionary from the API JSON response.
 
     Returns:
         RoadmapFeature object or None if parsing fails.
     """
     try:
-        # Extract product tags from tagsContainer
-        tags_container = item.get("tagsContainer") or {}
-        products = [
-            p["tagName"]
-            for p in tags_container.get("products", [])
-            if "tagName" in p
-        ]
-
-        # Extract cloud instances from tagsContainer
-        cloud_instances = [
-            c["tagName"]
-            for c in tags_container.get("cloudInstances", [])
-            if "tagName" in c
-        ]
-
-        # Extract release phases from tagsContainer
-        release_phases = [
-            r["tagName"]
-            for r in tags_container.get("releasePhase", [])
-            if "tagName" in r
-        ]
-
-        # Extract platforms from tagsContainer
-        platforms = [
-            p["tagName"]
-            for p in tags_container.get("platforms", [])
-            if "tagName" in p
-        ]
+        # v2 API uses flat arrays directly
+        products = item.get("products", []) or []
+        cloud_instances = item.get("cloudInstances", []) or []
+        release_rings = item.get("releaseRings", []) or []
+        platforms = item.get("platforms", []) or []
+        availabilities = item.get("availabilities", []) or []
+        more_info_urls = item.get("moreInfoUrls", []) or []
 
         return RoadmapFeature(
             id=str(item.get("id", "")),
             title=item.get("title", ""),
             description=item.get("description", ""),
             status=item.get("status"),
-            tags=products,
+            products=products,
             cloud_instances=cloud_instances,
-            release_phases=release_phases,
+            release_rings=release_rings,
             platforms=platforms,
-            public_disclosure_date=item.get("publicDisclosureAvailabilityDate"),
-            public_preview_date=item.get("publicPreviewDate"),
+            general_availability_date=item.get("generalAvailabilityDate"),
+            preview_availability_date=item.get("previewAvailabilityDate"),
+            availabilities=availabilities,
+            more_info_urls=more_info_urls,
             created=item.get("created"),
             modified=item.get("modified"),
         )

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Model Context Protocol (MCP) server that enables AI agents to query the Microsoft 365 Roadmap programmatically. The server provides structured access to Microsoft's public roadmap API, allowing agents to answer complex filtering questions about upcoming M365 features, release dates, and cloud instance availability (particularly critical for government/defense clients using GCC, GCC High, or DoD instances).
 
-**Key API Endpoint**: `https://www.microsoft.com/releasecommunications/api/v1/m365` (replaces legacy roadmap-api.azurewebsites.net)
+**Key API Endpoint**: `https://www.microsoft.com/releasecommunications/api/v2/m365`
 
 ## Architecture Pattern
 
@@ -90,14 +90,19 @@ The README specifies these tools to implement:
 
 ## Key Schema Fields from M365 API
 
-Critical fields from the API response:
+Critical fields from the v2 API response:
 - `id` - Unique Roadmap ID
 - `title` - Feature title
 - `description` - HTML/Text description
 - `status` - Values: "In development", "Rolling out", "Launched"
-- `tags` - Product associations (e.g., "Microsoft Teams", "SharePoint")
-- `publicDisclosureAvailabilityDate` - Estimated release target
+- `products` - Product associations (e.g., "Microsoft Teams", "SharePoint")
+- `generalAvailabilityDate` - Estimated GA date (YYYY-MM format)
+- `previewAvailabilityDate` - Estimated preview date (YYYY-MM format)
 - `cloudInstances` - Critical for government clients: "Worldwide (Standard Multi-Tenant)", "DoD", "GCC", "GCC High"
+- `releaseRings` - Release rings (e.g., "General Availability", "Preview")
+- `platforms` - Target platforms (e.g., "Web", "Desktop", "iOS")
+- `availabilities` - Per-ring schedule entries with ring, year, month
+- `moreInfoUrls` - Documentation links
 
 ## Development Commands
 

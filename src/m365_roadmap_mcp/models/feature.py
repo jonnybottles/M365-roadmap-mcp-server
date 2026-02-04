@@ -13,7 +13,7 @@ class RoadmapFeature(BaseModel):
         default=None,
         description="Feature status: In development, Rolling out, or Launched",
     )
-    tags: list[str] = Field(
+    products: list[str] = Field(
         default_factory=list,
         description="Product tags (e.g., Microsoft Teams, SharePoint)",
     )
@@ -21,21 +21,29 @@ class RoadmapFeature(BaseModel):
         default_factory=list,
         description="Cloud availability (e.g., Worldwide, GCC, GCC High, DoD)",
     )
-    release_phases: list[str] = Field(
+    release_rings: list[str] = Field(
         default_factory=list,
-        description="Release phases (e.g., General Availability, Preview, Targeted Release)",
+        description="Release rings (e.g., General Availability, Preview, Targeted Release)",
     )
     platforms: list[str] = Field(
         default_factory=list,
         description="Target platforms (e.g., Web, Desktop, iOS, Android, Mac)",
     )
-    public_disclosure_date: str | None = Field(
+    general_availability_date: str | None = Field(
         default=None,
-        description="Estimated rollout start date (e.g., December CY2026)",
+        description="Estimated general availability date (e.g., 2026-03)",
     )
-    public_preview_date: str | None = Field(
+    preview_availability_date: str | None = Field(
         default=None,
-        description="Estimated preview availability date (e.g., July 2026)",
+        description="Estimated preview availability date (e.g., 2026-07)",
+    )
+    availabilities: list[dict] = Field(
+        default_factory=list,
+        description="Per-ring schedule entries with ring, year, month",
+    )
+    more_info_urls: list[str] = Field(
+        default_factory=list,
+        description="Documentation and more info links",
     )
     created: str | None = Field(
         default=None,
@@ -53,12 +61,14 @@ class RoadmapFeature(BaseModel):
             "title": self.title,
             "description": self.description,
             "status": self.status,
-            "tags": self.tags,
+            "products": self.products,
             "cloud_instances": self.cloud_instances,
-            "release_phases": self.release_phases,
+            "release_rings": self.release_rings,
             "platforms": self.platforms,
-            "public_disclosure_date": self.public_disclosure_date,
-            "public_preview_date": self.public_preview_date,
+            "general_availability_date": self.general_availability_date,
+            "preview_availability_date": self.preview_availability_date,
+            "availabilities": self.availabilities,
+            "more_info_urls": self.more_info_urls,
             "created": self.created,
             "modified": self.modified,
         }

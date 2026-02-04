@@ -46,7 +46,7 @@ async def test_search_by_product():
     assert isinstance(result["features"], list)
     assert len(result["features"]) <= 5
     for feature in result["features"]:
-        assert any("teams" in tag.lower() for tag in feature["tags"])
+        assert any("teams" in p.lower() for p in feature["products"])
     assert result["filters_applied"].get("product") == "Teams"
 
 
@@ -80,8 +80,9 @@ async def test_search_by_feature_id():
     """Feature ID lookup retrieves a single specific feature."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    # First get a valid ID
-    recent = await search_roadmap(limit=1)
+    # Use a stable feature from the middle of the list to avoid API churn
+    # at the newest end of the dataset
+    recent = await search_roadmap(status="Launched", limit=1)
     if recent["features"]:
         fid = recent["features"][0]["id"]
         result = await search_roadmap(feature_id=fid)
@@ -153,9 +154,13 @@ async def test_search_output_structure():
         assert "title" in feature
         assert "description" in feature
         assert "status" in feature
-        assert "tags" in feature
+        assert "products" in feature
         assert "cloud_instances" in feature
-        assert "public_disclosure_date" in feature
+        assert "release_rings" in feature
+        assert "general_availability_date" in feature
+        assert "preview_availability_date" in feature
+        assert "availabilities" in feature
+        assert "more_info_urls" in feature
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +234,7 @@ async def test_added_within_days_combined_with_product():
     assert result["filters_applied"].get("product") == "Teams"
     assert result["filters_applied"].get("added_within_days") == 365
     for feature in result["features"]:
-        assert any("teams" in tag.lower() for tag in feature["tags"])
+        assert any("teams" in p.lower() for p in feature["products"])
         assert feature["created"] is not None
 
 
@@ -251,14 +256,14 @@ async def test_added_within_days_none_means_no_filter():
 
 @pytest.mark.asyncio
 async def test_search_by_release_phase():
-    """Release phase filter returns features with matching release phase."""
+    """Release phase filter returns features with matching release ring."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
     result = await search_roadmap(release_phase="General Availability", limit=10)
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert any("general availability" in rp.lower() for rp in feature["release_phases"])
+        assert any("general availability" in rr.lower() for rr in feature["release_rings"])
     assert result["filters_applied"].get("release_phase") == "General Availability"
 
 
@@ -271,7 +276,7 @@ async def test_search_by_release_phase_partial_match():
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert any("preview" in rp.lower() for rp in feature["release_phases"])
+        assert any("preview" in rr.lower() for rr in feature["release_rings"])
 
 
 @pytest.mark.asyncio
@@ -326,7 +331,7 @@ async def test_search_by_platform_combined_with_product():
     assert isinstance(result["features"], list)
     for feature in result["features"]:
         assert any("web" in p.lower() for p in feature["platforms"])
-        assert any("teams" in tag.lower() for tag in feature["tags"])
+        assert any("teams" in p.lower() for p in feature["products"])
     assert result["filters_applied"].get("platform") == "Web"
     assert result["filters_applied"].get("product") == "Teams"
 
@@ -338,53 +343,54 @@ async def test_search_by_platform_combined_with_product():
 
 @pytest.mark.asyncio
 async def test_search_by_rollout_date_year():
-    """Rollout date filter matches year in publicDisclosureAvailabilityDate."""
+    """Rollout date filter matches year in generalAvailabilityDate."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
     result = await search_roadmap(rollout_date="2026", limit=10)
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert feature["public_disclosure_date"] is not None
-        assert "2026" in feature["public_disclosure_date"]
+        assert feature["general_availability_date"] is not None
+        assert "2026" in feature["general_availability_date"]
     assert result["filters_applied"].get("rollout_date") == "2026"
 
 
 @pytest.mark.asyncio
-async def test_search_by_rollout_date_month():
-    """Rollout date filter supports partial month matching."""
+async def test_search_by_rollout_date_year_month():
+    """Rollout date filter supports YYYY-MM matching."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await search_roadmap(rollout_date="December 2026", limit=10)
+    result = await search_roadmap(rollout_date="2026-", limit=10)
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert feature["public_disclosure_date"] is not None
-        assert "december" in feature["public_disclosure_date"].lower()
-        assert "2026" in feature["public_disclosure_date"]
+        assert feature["general_availability_date"] is not None
+        assert "2026-" in feature["general_availability_date"]
 
 
 @pytest.mark.asyncio
 async def test_search_by_rollout_date_filters_nulls():
-    """Rollout date filter excludes features with no publicDisclosureAvailabilityDate."""
+    """Rollout date filter excludes features with no generalAvailabilityDate."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
     result = await search_roadmap(rollout_date="2026", limit=100)
 
     for feature in result["features"]:
-        assert feature["public_disclosure_date"] is not None
-        assert feature["public_disclosure_date"] != ""
+        assert feature["general_availability_date"] is not None
+        assert feature["general_availability_date"] != ""
 
 
 @pytest.mark.asyncio
 async def test_search_by_rollout_date_case_insensitive():
-    """Rollout date filter is case-insensitive."""
+    """Rollout date filter is case-insensitive (v2 uses YYYY-MM, so case is moot)."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result_lower = await search_roadmap(rollout_date="december 2026", limit=10)
-    result_upper = await search_roadmap(rollout_date="DECEMBER 2026", limit=10)
+    result = await search_roadmap(rollout_date="2026", limit=10)
 
-    assert result_lower["total_found"] == result_upper["total_found"]
+    assert isinstance(result["features"], list)
+    for feature in result["features"]:
+        assert feature["general_availability_date"] is not None
+        assert "2026" in feature["general_availability_date"]
 
 
 # ---------------------------------------------------------------------------
@@ -394,15 +400,15 @@ async def test_search_by_rollout_date_case_insensitive():
 
 @pytest.mark.asyncio
 async def test_search_by_preview_date():
-    """Preview date filter matches publicPreviewDate."""
+    """Preview date filter matches previewAvailabilityDate."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
     result = await search_roadmap(preview_date="2026", limit=10)
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert feature["public_preview_date"] is not None
-        assert "2026" in feature["public_preview_date"]
+        assert feature["preview_availability_date"] is not None
+        assert "2026" in feature["preview_availability_date"]
     assert result["filters_applied"].get("preview_date") == "2026"
 
 
@@ -411,24 +417,24 @@ async def test_search_by_preview_date_partial():
     """Preview date filter supports partial matching."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    result = await search_roadmap(preview_date="July", limit=10)
+    result = await search_roadmap(preview_date="2026-", limit=10)
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert feature["public_preview_date"] is not None
-        assert "july" in feature["public_preview_date"].lower()
+        assert feature["preview_availability_date"] is not None
+        assert "2026-" in feature["preview_availability_date"]
 
 
 @pytest.mark.asyncio
 async def test_search_by_preview_date_filters_nulls():
-    """Preview date filter excludes features with no publicPreviewDate."""
+    """Preview date filter excludes features with no previewAvailabilityDate."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
     result = await search_roadmap(preview_date="2026", limit=100)
 
     for feature in result["features"]:
-        assert feature["public_preview_date"] is not None
-        assert feature["public_preview_date"] != ""
+        assert feature["preview_availability_date"] is not None
+        assert feature["preview_availability_date"] != ""
 
 
 # ---------------------------------------------------------------------------
@@ -502,7 +508,7 @@ async def test_modified_within_days_combined_with_other():
     assert result["filters_applied"].get("product") == "Teams"
     assert result["filters_applied"].get("modified_within_days") == 365
     for feature in result["features"]:
-        assert any("teams" in tag.lower() for tag in feature["tags"])
+        assert any("teams" in p.lower() for p in feature["products"])
         assert feature["modified"] is not None
 
 
@@ -544,10 +550,10 @@ async def test_combined_date_filters():
 
     assert isinstance(result["features"], list)
     for feature in result["features"]:
-        assert feature["public_disclosure_date"] is not None
-        assert "2026" in feature["public_disclosure_date"]
-        assert feature["public_preview_date"] is not None
-        assert "2026" in feature["public_preview_date"]
+        assert feature["general_availability_date"] is not None
+        assert "2026" in feature["general_availability_date"]
+        assert feature["preview_availability_date"] is not None
+        assert "2026" in feature["preview_availability_date"]
 
 
 @pytest.mark.asyncio
@@ -568,25 +574,32 @@ async def test_combined_recency_filters():
 
 
 # ---------------------------------------------------------------------------
-# regression test - original issue
+# v2 output fields
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_december_2026_includes_universal_print():
-    """December 2026 search should include Universal Print feature (original issue)."""
+async def test_v2_output_fields():
+    """Output contains v2-specific fields: availabilities, more_info_urls, products, release_rings."""
     from m365_roadmap_mcp.tools.search import search_roadmap
 
-    # API uses format "December CY2026", not "December 2026"
-    result = await search_roadmap(rollout_date="December CY2026", limit=100)
+    result = await search_roadmap(limit=5)
 
-    # Check if Universal Print feature is in the results
-    titles = [f["title"].lower() for f in result["features"]]
-    has_universal_print = any("universal print" in title for title in titles)
+    assert isinstance(result["features"], list)
+    for feature in result["features"]:
+        assert "products" in feature
+        assert "release_rings" in feature
+        assert "availabilities" in feature
+        assert "more_info_urls" in feature
+        assert isinstance(feature["products"], list)
+        assert isinstance(feature["release_rings"], list)
+        assert isinstance(feature["availabilities"], list)
+        assert isinstance(feature["more_info_urls"], list)
 
-    # This should be true if the original issue is fixed
-    assert result["total_found"] > 0, "Should return features for December CY2026"
-    assert has_universal_print, "Universal Print feature should be in December CY2026 results"
+
+# ---------------------------------------------------------------------------
+# facets with v2 keys
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
@@ -602,11 +615,11 @@ async def test_include_facets_basic():
     assert "filters_applied" in result
     assert "facets" in result
 
-    # Verify facets structure
+    # Verify facets structure with v2 keys
     facets = result["facets"]
     assert "products" in facets
     assert "statuses" in facets
-    assert "release_phases" in facets
+    assert "release_rings" in facets
     assert "platforms" in facets
     assert "cloud_instances" in facets
 

@@ -18,22 +18,22 @@ def compute_facets(features: list[RoadmapFeature]) -> dict:
     """
     products = Counter()
     statuses = Counter()
-    release_phases = Counter()
+    release_rings = Counter()
     platforms = Counter()
     cloud_instances = Counter()
 
     for feature in features:
-        # Products (from tags)
-        for tag in feature.tags:
-            products[tag] += 1
+        # Products
+        for p in feature.products:
+            products[p] += 1
 
         # Status
         if feature.status:
             statuses[feature.status] += 1
 
-        # Release phases
-        for rp in feature.release_phases:
-            release_phases[rp] += 1
+        # Release rings
+        for rr in feature.release_rings:
+            release_rings[rr] += 1
 
         # Platforms
         for p in feature.platforms:
@@ -46,7 +46,7 @@ def compute_facets(features: list[RoadmapFeature]) -> dict:
     return {
         "products": [{"name": k, "count": v} for k, v in products.most_common()],
         "statuses": [{"name": k, "count": v} for k, v in statuses.most_common()],
-        "release_phases": [{"name": k, "count": v} for k, v in release_phases.most_common()],
+        "release_rings": [{"name": k, "count": v} for k, v in release_rings.most_common()],
         "platforms": [{"name": k, "count": v} for k, v in platforms.most_common()],
         "cloud_instances": [{"name": k, "count": v} for k, v in cloud_instances.most_common()],
     }
@@ -84,8 +84,8 @@ async def search_roadmap(
     - List recently added features (added_within_days=30)
     - Filter by release phase (release_phase="General Availability", "Preview")
     - Filter by platform (platform="Web", "iOS", "Android")
-    - Filter by rollout date (rollout_date="December 2026")
-    - Filter by preview date (preview_date="July 2026")
+    - Filter by rollout date (rollout_date="2026-03")
+    - Filter by preview date (preview_date="2026-07")
     - List recently modified features (modified_within_days=7)
     - Combine any of the above (query="Copilot" + product="Teams" + cloud_instance="GCC")
 
@@ -99,18 +99,18 @@ async def search_roadmap(
         feature_id: Optional roadmap ID to retrieve a single specific feature.
             When provided, all other filters are ignored.
         added_within_days: Optional number of days to look back for recently added
-            features (clamped to 1–365). Only features with a created date within
+            features (clamped to 1-365). Only features with a created date within
             this window are returned.
         release_phase: Optional release phase filter (case-insensitive partial match).
         platform: Optional platform filter (case-insensitive partial match).
-        rollout_date: Optional rollout start date filter (partial string match against
-            publicDisclosureAvailabilityDate, e.g. "December 2026").
+        rollout_date: Optional rollout date filter (partial string match against
+            generalAvailabilityDate, e.g. "2026-03").
         preview_date: Optional preview availability date filter (partial string match
-            against publicPreviewDate, e.g. "July 2026").
+            against previewAvailabilityDate, e.g. "2026-07").
         modified_within_days: Optional number of days to look back for recently modified
             features (clamped to 1-365).
         include_facets: When True, includes taxonomy facets (products, statuses,
-            release_phases, platforms, cloud_instances) with occurrence counts in
+            release_rings, platforms, cloud_instances) with occurrence counts in
             the response. Use with limit=0 to get only facets without features.
             Facets are computed from matched results after filters are applied.
         limit: Maximum number of results to return (default: 10, max: 100).
@@ -176,7 +176,7 @@ async def search_roadmap(
 
         # Product filter (partial match)
         if product_lower:
-            if not any(product_lower in tag.lower() for tag in feature.tags):
+            if not any(product_lower in p.lower() for p in feature.products):
                 continue
 
         # Cloud instance filter (partial match)
@@ -184,9 +184,9 @@ async def search_roadmap(
             if not any(cloud_lower in ci.lower() for ci in feature.cloud_instances):
                 continue
 
-        # Release phase filter (partial match)
+        # Release phase filter (partial match against release_rings)
         if release_phase_lower:
-            if not any(release_phase_lower in rp.lower() for rp in feature.release_phases):
+            if not any(release_phase_lower in rr.lower() for rr in feature.release_rings):
                 continue
 
         # Platform filter (partial match)
@@ -194,26 +194,18 @@ async def search_roadmap(
             if not any(platform_lower in p.lower() for p in feature.platforms):
                 continue
 
-        # Rollout date filter (partial match against publicDisclosureAvailabilityDate)
-        # API uses "CY" prefix (e.g., "December CY2026") but users typically omit it
+        # Rollout date filter (partial match against generalAvailabilityDate)
         if rollout_date_lower:
-            if not feature.public_disclosure_date:
+            if not feature.general_availability_date:
                 continue
-            # Normalize by removing "cy" prefix for comparison
-            normalized_date = feature.public_disclosure_date.lower().replace(" cy", " ")
-            normalized_query = rollout_date_lower.replace(" cy", " ")
-            if normalized_query not in normalized_date:
+            if rollout_date_lower not in feature.general_availability_date.lower():
                 continue
 
-        # Preview date filter (partial match against publicPreviewDate)
-        # API uses "CY" prefix (e.g., "July CY2026") but users typically omit it
+        # Preview date filter (partial match against previewAvailabilityDate)
         if preview_date_lower:
-            if not feature.public_preview_date:
+            if not feature.preview_availability_date:
                 continue
-            # Normalize by removing "cy" prefix for comparison
-            normalized_date = feature.public_preview_date.lower().replace(" cy", " ")
-            normalized_query = preview_date_lower.replace(" cy", " ")
-            if normalized_query not in normalized_date:
+            if preview_date_lower not in feature.preview_availability_date.lower():
                 continue
 
         # Keyword search (title + description)

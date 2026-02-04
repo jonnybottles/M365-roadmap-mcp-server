@@ -165,15 +165,15 @@ Provides a single **`search_roadmap`** tool that handles all M365 roadmap querie
 - **Recent additions** -- List features added within the last N days
 - **Release phase filter** -- Filter by release phase (General Availability, Preview, Targeted Release)
 - **Platform filter** -- Filter by platform (Web, Desktop, iOS, Android, Mac)
-- **Rollout date filter** -- Filter by rollout start date (e.g., "December 2026", "2026")
-- **Preview date filter** -- Filter by preview availability date (e.g., "July 2026")
+- **Rollout date filter** -- Filter by general availability date (e.g., "2026-03", "2026")
+- **Preview date filter** -- Filter by preview availability date (e.g., "2026-07", "2026")
 - **Recently modified** -- List features modified within the last N days
 
 ## Data Source
 
 This MCP server pulls data from Microsoft's public roadmap API:
 
-- **API Endpoint:** `https://www.microsoft.com/releasecommunications/api/v1/m365`
+- **API Endpoint:** `https://www.microsoft.com/releasecommunications/api/v2/m365`
 - **Authentication:** None required (public endpoint)
 - **RSS Mirror:** `https://www.microsoft.com/microsoft-365/RoadmapFeatureRSS` (same data, RSS format)
 
